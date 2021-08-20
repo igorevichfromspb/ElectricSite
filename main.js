@@ -20,12 +20,50 @@ const toggleMenu = () => {
   document.addEventListener("click", (event) => {
     let currentClick = event.target;
     if (
-      currentClick.matches(".callback-btn, .modal-overlay, .button-services") ||
+      currentClick.matches(
+        ".callback-btn, .modal-overlay, .button-services, .before"
+      ) ||
       currentClick.closest(".modal-close")
     ) {
       handlerMenu();
     }
   });
+
+  const imgWrapper = document.querySelectorAll(".img-wrapper");
+  for (let i = 0; i < imgWrapper.length; i++) {
+    if (imgWrapper[i].closest(".col-sm-6")) {
+      const before = document.createElement("div");
+      before.className = "before";
+      before.textContent = "Оформить заявку";
+      imgWrapper[i].append(before);
+    }
+  }
+  const style = document.createElement("style");
+  document.head.appendChild(style);
+  style.textContent = `
+    .before {
+      display: block !important;
+      position: absolute !important;
+      width: 200px !important;
+      height: 48px !important;
+      top: 50% !important;
+      left: 50% !important;
+      margin-left: -100px !important;
+      -webkit-transition: all 200ms ease-out !important;
+      -moz-transition: all 200ms ease-out !important;
+      -o-transition: all 200ms ease-out !important;
+      transition: all 200ms ease-out !important;
+      margin-top: -24px !important;
+      z-index: 10 !important;
+      opacity: 0 !important;
+      color: #fff !important;
+      padding: 10px 0 !important;
+      text-align: center !important;
+      text-transform: uppercase !important;
+      border: 2px solid #fff !important;
+      cursor: pointer;
+    }
+  `;
 };
 
 toggleMenu();
@@ -184,3 +222,305 @@ const scroll = () => {
   document.addEventListener("scroll", addClass);
 };
 scroll();
+
+// SliderCarousel
+class SliderCarousel {
+  constructor({
+    main,
+    wrap,
+    next,
+    prev,
+    infinity = false,
+    position = 0,
+    slidesToShow = 3,
+    responsive = [],
+  }) {
+    this.main = document.querySelector(main);
+    this.wrap = document.querySelector(wrap);
+    this.slides = document.querySelector(wrap).children;
+    this.next = document.querySelector(next);
+    this.prev = document.querySelector(prev);
+    this.slidesToShow = slidesToShow;
+    this.options = {
+      position,
+      infinity,
+      widthSlide: Math.floor(100 / this.slidesToShow),
+      maxPosition: this.slides.length - this.slidesToShow,
+    };
+    this.responsive = responsive;
+  }
+  init() {
+    this.addGloClass();
+    this.addStyle();
+    if (this.prev && this.next) {
+      this.controlSlider();
+    } else {
+      this.addArrow();
+      this.controlSlider();
+    }
+    if (this.responsive) {
+      this.responseInit();
+    }
+  }
+  addGloClass() {
+    this.main.classList.add("glo-slider");
+    this.wrap.classList.add("glo-slider__wrap");
+    for (const item of this.slides) {
+      item.classList.add("glo-slider__item");
+    }
+  }
+  addStyle() {
+    let style = document.getElementById("sliderCarousel-style");
+    if (!style) {
+      style = document.createElement("style");
+      style.id = "sliderCarousel-style";
+    }
+    style.textContent = `
+      .glo-slider {
+        overflow: hidden !important;
+      }
+      .glo-slider__wrap {
+        display: flex !important;
+        transition: transform 0.5s !important;
+        will-change: transform !important;
+      }
+      .glo-slider__item {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 ${this.options.widthSlide}% !important;
+        margin: auto 0 !important;
+      }
+      `;
+    document.head.append(style);
+  }
+  controlSlider() {
+    this.prev.addEventListener("click", this.prevSlider.bind(this));
+    this.next.addEventListener("click", this.nextSlider.bind(this));
+  }
+  prevSlider() {
+    if (this.options.infinity || this.options.position > 0) {
+      --this.options.position;
+      if (this.options.position < 0) {
+        this.options.position = this.options.maxPosition;
+      }
+      this.wrap.style.transform = `translateX(-${
+        this.options.position * this.options.widthSlide
+      }%)`;
+    }
+  }
+  nextSlider() {
+    if (
+      this.options.infinity ||
+      this.options.position < this.options.maxPosition
+    ) {
+      ++this.options.position;
+      if (this.options.position > this.options.maxPosition) {
+        this.options.position = 0;
+      }
+      this.wrap.style.transform = `translateX(-${
+        this.options.position * this.options.widthSlide
+      }%)`;
+    }
+  }
+  addArrow() {
+    this.prev = document.createElement("button");
+    this.next = document.createElement("button");
+    this.prev.className = "glo-slider__prev";
+    this.next.className = "glo-slider__next";
+    this.main.append(this.prev);
+    this.main.append(this.next);
+    const style = document.createElement("style");
+    style.textContent = `
+      .glo-slider__prev,
+      .glo-slider__next {
+        margin: 10px 10px;
+        border: 20px solid transparent;
+        background: transparent;
+      }
+      .glo-slider__next {
+        border-left-color: #19b5fe
+      }
+      .glo-slider__prev {
+        border-right-color: #19b5fe
+      }
+      .glo-slider__next:hover,
+      .glo-slider__next:focus,
+      .glo-slider__prev:hover,
+      .glo-slider__prev:focus {
+        background: transparent;
+        outline: transparent;
+      }
+      `;
+    document.head.append(style);
+  }
+  responseInit() {
+    const slidesToShowDefault = this.slidesToShow,
+      allResponse = this.responsive.map((item) => item.breakpoint),
+      maxResponse = Math.max(...allResponse);
+    const checkResponse = () => {
+      const widthWindow = document.documentElement.clientWidth;
+      if (widthWindow < maxResponse) {
+        for (let i = 0; i < allResponse.length; i++) {
+          if (widthWindow < allResponse[i]) {
+            this.slidesToShow = this.responsive[i].slidesToShow;
+            this.options.widthSlide = Math.floor(100 / this.slidesToShow);
+            this.addStyle();
+          }
+        }
+      } else {
+        this.slidesToShow = slidesToShowDefault;
+        this.options.widthSlide = Math.floor(100 / this.slidesToShow);
+        this.addStyle();
+      }
+    };
+    checkResponse();
+    window.addEventListener("resize", checkResponse);
+  }
+}
+const carousel = new SliderCarousel({
+  main: ".services-elements",
+  wrap: ".services-carousel",
+  next: ".arrow-right",
+  prev: ".arrow-left",
+  slidesToShow: 3,
+  infinity: true,
+  responsive: [
+    {
+      breakpoint: 1024,
+      slidesToShow: 3,
+    },
+    {
+      breakpoint: 768,
+      slidesToShow: 2,
+    },
+    {
+      breakpoint: 576,
+      slidesToShow: 1,
+    },
+  ],
+});
+carousel.init();
+
+// Accordeon
+const accordeon = () => {
+  const accordeon = document.querySelector(".accordeon"),
+    element = accordeon.querySelectorAll(".element");
+
+  const addStyle = () => {
+    let style = document.createElement("style");
+    style.textContent = `
+      .accordeon .element.active .element-content {
+        display: block !important;
+      }
+      .accordeon .element-content {
+        display: none !important;
+      }
+    `;
+    document.head.append(style);
+  };
+  addStyle();
+
+  for (let item of element) {
+    item.addEventListener("click", function () {
+      if (this.classList.contains("active")) {
+        this.classList.remove("active");
+      } else {
+        for (let elem of element) {
+          elem.classList.remove("active");
+        }
+        this.classList.add("active");
+      }
+    });
+  }
+};
+accordeon();
+
+// sendForm
+const sendForm = () => {
+  const errorMessage = "Что-то пошло не так...",
+    loadMessage = "Загрузка...",
+    successMessage = "Спасибо! Мы скоро с вами свяжемся!";
+  const statusMessage = document.createElement("div");
+  statusMessage.style.cssText = `
+    font-size: 2rem;
+    color: black;
+    text-align: center;
+  `;
+  document.addEventListener("submit", (event) => {
+    const target = event.target;
+    event.preventDefault();
+    target.appendChild(statusMessage);
+    statusMessage.textContent = loadMessage;
+    const formData = new FormData(target);
+    const body = {};
+    for (let val of formData.entries()) {
+      body[val[0]] = val[1];
+    }
+    target.reset();
+
+    const postData = (body) => {
+      return fetch("./server.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+    };
+
+    const reset = () => {
+      statusMessage.textContent = "";
+    };
+    postData(body)
+      .then((response) => {
+        setTimeout(reset, 5000);
+        if (response.status !== 200) {
+          throw new Error("status network not 200");
+        }
+        statusMessage.textContent = successMessage;
+      })
+      .catch((error) => {
+        setTimeout(reset, 5000);
+        statusMessage.textContent = errorMessage;
+        console.error(error);
+      });
+  });
+};
+sendForm();
+
+// Check
+const check = () => {
+  document.addEventListener("input", (event) => {
+    const target = event.target;
+    if (target.name === "fio") {
+      target.value = target.value.replace(/[^а-яё\s]/gi, "");
+    } else if (target.name === "tel") {
+      target.value = target.value.replace(/[^0-9+]/, "");
+    }
+  });
+  document.addEventListener(
+    "blur",
+    (event) => {
+      if (event.target.name === "fio") {
+        event.target.value = event.target.value
+          .split(" ")
+          .map(
+            (elem) => elem[0].toUpperCase() + elem.toLowerCase().substring(1)
+          )
+          .join(" ");
+      } else if (event.target.name === "tel") {
+        const phoneOne = new RegExp(/^\+7\d{10}$/);
+        const phoneTwo = new RegExp(/^[78]{1}\d{10}$/);
+        if (
+          !phoneOne.test(event.target.value) &&
+          !phoneTwo.test(event.target.value)
+        ) {
+          event.target.value = "";
+        }
+      }
+    },
+    true
+  );
+};
+check();
