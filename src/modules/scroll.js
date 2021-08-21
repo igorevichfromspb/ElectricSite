@@ -6,7 +6,7 @@ const scroll = () => {
     style.textContent = `
         .up {
           display: none;
-        }  
+        }
         .up-active {
           display: block !important;
         }
@@ -31,8 +31,25 @@ const scroll = () => {
       window.scrollTo(window.pageYOffset, 0);
     }
   };
-
-  up.addEventListener("click", goUp);
+  const smoothScroll = (event) => {
+    const target = event.target;
+    if (target.tagName === "A" && target.parentNode.tagName === "LI") {
+      const id = target.getAttribute("href");
+      event.preventDefault();
+      document.querySelector(id).scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  };
+  document.addEventListener("click", smoothScroll);
+  up.addEventListener("click", (event) => {
+    event.preventDefault();
+    document.querySelector("body").scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  });
   document.addEventListener("scroll", addClass);
 };
 export default scroll;
