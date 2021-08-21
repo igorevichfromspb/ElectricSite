@@ -1,14 +1,14 @@
 const mobileMenu = () => {
-  const addClass = () => {
+  const openClass = () => {
     document.querySelector(".mobile-menu").classList.toggle("open");
   };
 
   document.addEventListener("click", (event) => {
     if (event.target.closest(".mob-menu-btn")) {
-      addClass();
+      openClass();
     }
     if (event.target.closest(".mobile-menu-close, li>a")) {
-      addClass();
+      openClass();
     }
     if (event.target.closest(".overlay")) {
       document.querySelector(".mobile-menu").classList.remove("open");
